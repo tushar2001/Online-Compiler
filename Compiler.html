@@ -1,0 +1,91 @@
+<html>
+    <head>
+    </head>
+    <body>
+        <div>Type your Code
+            <select name="lan" style="float:right">
+            <option value="0">Python</option>
+            <option value="4">Javascript</option>
+            <option value="7">C</option>
+            <option value="77">CPP</option>
+            <option value="8">Java</option>
+        </select>
+        </div>
+        <textarea style="width:100%;height:300px;margin-top:10px" id="a1">print("Hello world");</textarea>
+        <div style="width:100%;height:150px;background:black;color:white;margin-top:10px;padding:5px" id="print">
+            OUTPUT:
+        </div>
+        <input type="button" value="Compile" style="background:yellow;border-radius:5px;margin-top:10px;padding:5px" onclick="ab()">
+    </body>
+    <script>
+        var b = document.querySelector("select");
+        b.addEventListener("change",function()
+        {
+            var a = document.getElementById("a1");
+            if(b.value==4)
+            a.value = '// Write your code here\nconsole.log("Hello World");';
+            else if(b.value==7)
+            a.value = `#include <stdio.h>\n\nint main() {\n // Write your code here\n printf("Hello World");\n}`;
+            else if(b.value==77)
+                a.value = '#include <iostream>\nusing namespace std;\n\nint main() {\n // Write your code here\n cout<<"Hello World";\n}';
+            else if(b.value==8)
+                a.value = 'class Main {\n  public static void main(String[] args) {\n   // Write your code here\n   System.out.println("Hello World");\n }\n}';
+            else
+            a.value = '# Write your code here\nprint("Hello World");';
+        })
+
+
+
+
+        function ab()
+        {
+            var code = document.getElementById("a1").value;
+            var langId = document.querySelector("select").value;
+            document.getElementById("print").innerHTML = "Compiling";
+            fetch("https://codequotient.com/api/executeCode",
+            {
+                method : "POST",
+                body: JSON.stringify({code,langId}),
+                headers : { "Content-Type" : "application/json" }
+            }).then( response => 
+            {
+                
+                if(response.ok)
+                    return (response);
+                document.getElementById("print").innerHTML = "Output: Error";
+            }).then(response => response.json())
+            .then( response => 
+            {
+                
+                if(response.codeId)
+                    getResult(response.codeId);
+                else
+                 document.getElementById("print").innerHTML="Error: " + response.error;
+            });
+        }
+        function getResult(codeId)
+        {
+            fetch("https://codequotient.com/api/codeResult/" + codeId)
+            .then(response => 
+            {
+                if(response.ok)
+                return (response);
+                document.getElementById("print").innerHTML = "Output: Error ";
+            }).then(response => response.json())
+            .then(response =>
+            {
+                response = JSON.parse(response.data);
+                if( response.output || response.errors)
+                {
+                    if(response.errors)
+                        document.getElementById("print").innerHTML = "Output: " + response.errors;
+                    else if(response.output)
+                        document.getElementById("print").innerHTML = response.output;
+                }
+                else
+                    setTimeout(() => getResult(codeId),1000);
+            })
+        }
+    </script>
+
+    </html>
